@@ -44,9 +44,6 @@ struct Node {
     // No-Throw exception guarantee
     ~Node()
     { delete _right; delete _left;}
-    
-    Node<ValueType> * copy(Node<ValueType> * r);     //copies one node to *this;
-
 };
 
 
@@ -73,7 +70,16 @@ public:
     template <typename OutputIter>
     void postorderTraverse(OutputIter iter) const;
     
-    Node<ValueType> * & find(ValueType key) const; //used for retrieval and insert functions
+    template <typename OutputIter>
+    void preorderTraverse(Node<ValueType> * root, OutputIter & iter) const;
+    template <typename OutputIter>
+    void inorderTraverse(Node<ValueType> * root, OutputIter & iter) const;
+    template <typename OutputIter>
+    void postorderTraverse(Node<ValueType> * root, OutputIter & iter) const;
+    
+    const Node<ValueType> * find(const ValueType & key, const Node<ValueType> * root) const; //used for retrieval and insert functions
+    Node<ValueType> * & find(const ValueType & key, Node<ValueType> * & root); //used for retrieval and insert functions
+    Node<ValueType> * copy(Node<ValueType> * r);     //copies one node to *this;
     
 private:
     Node<ValueType> * _root;
@@ -91,7 +97,7 @@ template <typename T>
 BSTree<T>::BSTree(const BSTree<T> & other)
 {
     _size = other._size;
-    _root->copy(other._root);
+    _root = copy(other._root);
 }
 
 template <typename T>
@@ -117,10 +123,7 @@ std::size_t BSTree<T>::size() const
 template <typename T>
 bool BSTree<T>::empty() const
 {
-    if (_size == 0) {
-        return true;
-    }
-    return false;
+    return (_size == 0);
 }
 
 template <typename T>
@@ -134,7 +137,7 @@ void BSTree<T>::clear()
 template <typename T>
 bool BSTree<T>::retrieve(T key) const
 {
-    if(find(key) == nullptr)
+    if(find(key, _root) == nullptr)
     {
         return false;
     }
@@ -145,43 +148,76 @@ bool BSTree<T>::retrieve(T key) const
 template <typename T>
 bool BSTree<T>::insert(T key)
 {
-    return true;
+    if(find(key, _root) == nullptr)
+    {
+        find(key, _root) = new Node<T>(key);
+        _size++;
+        return true;
+    }
+    else
+        return false;
 }
+
 template <typename T>
 template <typename OutputIter>
 void BSTree<T>::preorderTraverse(OutputIter iter) const
 {
-    if(_root == nullptr)
+    preorderTraverse(_root, iter);
+}
+
+template <typename T>
+template <typename OutputIter>
+void BSTree<T>::preorderTraverse(Node<T> * root, OutputIter & iter) const
+{
+    if(root == nullptr)
         return;
-    *iter++ = _root->_key;
-    preorderTraverse(iter);
-    preorderTraverse(iter);
+    *iter++ = root->_key;
+    preorderTraverse(root->_left, iter);
+    preorderTraverse(root->_right, iter);
+
 }
 
 template <typename T>
 template <typename OutputIter>
 void BSTree<T>::inorderTraverse(OutputIter iter) const
 {
-    if(_root == nullptr)
+    inorderTraverse(_root, iter);
+}
+
+template <typename T>
+template <typename OutputIter>
+void BSTree<T>::inorderTraverse(Node<T> * root, OutputIter & iter) const
+{
+    if(root == nullptr)
         return;
-    inorderTraverse(iter);
-    *iter++ - _root->_key;
-    inorderTraverse(iter);
+    inorderTraverse(root->_left, iter);
+    *iter++ = root->_key;
+    inorderTraverse(root->_right, iter);
+    
 }
 
 template <typename T>
 template <typename OutputIter>
 void BSTree<T>::postorderTraverse(OutputIter iter) const
 {
-    if(_root == nullptr)
-        return;
-    postorderTraverse(iter);
-    *iter++ - _root->_key;
-    postorderTraverse(iter);
+    postorderTraverse(_root, iter);
 }
 
 template <typename T>
-Node<T> * Node<T>::copy(Node<T> * r)
+template <typename OutputIter>
+void BSTree<T>::postorderTraverse(Node<T> * root, OutputIter & iter) const
+{
+    if(root == nullptr)
+        return;
+    
+    postorderTraverse(root->_left, iter);
+    postorderTraverse(root->_right, iter);
+    *iter++ = root->_key;
+    
+}
+
+template <typename T>
+Node<T> * BSTree<T>::copy(Node<T> * r)
 {
     if (r != nullptr) {
         Node<T> * newNode = new Node<T>(r->_key);
@@ -195,45 +231,37 @@ Node<T> * Node<T>::copy(Node<T> * r)
 }
 
 template <typename T>
-Node<T> * & BSTree<T>::find(T key) const
+const Node<T> * BSTree<T>::find(const T & key, const Node<T> * root) const
 {
-    Node<T> * walker = _root;
-    while (walker != nullptr)
+    if (root == nullptr || root->_key == key)
     {
-        if (walker->_key == key) {
-            return walker;
-        }
-        if (key < walker->_key)
-        {
-            walker = walker->_left;
-        }
-        else // (key > walker->_key)
-        {
-            walker = walker->_right;
-        }
+        return root;
     }
-    return walker;
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    if (key < root->_key)
+    {
+        return find(key, root->_left);
+    }
+    else
+    {
+        return find(key, root->_right);
+    }
 }
 
-
-
-
-
-
+template <typename T>
+Node<T> * & BSTree<T>::find(const T & key, Node<T> * & root)
+{
+    if (root == nullptr || root->_key == key)
+    {
+        return root;
+    }
+    if (key < root->_key)
+    {
+        return find(key, root->_left);
+    }
+    else
+    {
+        return find(key, root->_right);
+    }
+}
 
 #endif
