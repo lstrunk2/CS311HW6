@@ -151,26 +151,33 @@ template <typename T>
 template <typename OutputIter>
 void BSTree<T>::preorderTraverse(OutputIter iter) const
 {
-    BSTree temp =
     if(_root == nullptr)
         return;
     *iter++ = _root->_key;
-    _root->_left = preorderTraverse(iter);
-    _root->_right = preorderTraverse(iter);
+    preorderTraverse(iter);
+    preorderTraverse(iter);
 }
 
 template <typename T>
 template <typename OutputIter>
 void BSTree<T>::inorderTraverse(OutputIter iter) const
 {
-    
+    if(_root == nullptr)
+        return;
+    inorderTraverse(iter);
+    *iter++ - _root->_key;
+    inorderTraverse(iter);
 }
 
 template <typename T>
 template <typename OutputIter>
 void BSTree<T>::postorderTraverse(OutputIter iter) const
 {
-    
+    if(_root == nullptr)
+        return;
+    postorderTraverse(iter);
+    *iter++ - _root->_key;
+    postorderTraverse(iter);
 }
 
 template <typename T>
